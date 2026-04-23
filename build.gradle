@@ -1,0 +1,93 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.5'
+}
+
+group = 'com.payflow'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    camundaVersion = '7.21.0'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.camunda.bpm:camunda-bom:${camundaVersion}"
+    }
+}
+
+dependencies {
+
+    // ── Spring Boot ──────────────────────────────────────────────────────
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // ── Camunda 7 (embedded engine) ──────────────────────────────────────
+    // Основной стартер — поднимает Camunda внутри Spring Boot приложения
+    implementation 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter:7.21.0'
+
+    // REST API Camunda — даёт /camunda/api/... эндпоинты для управления процессами
+    implementation 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.21.0'
+
+    // Camunda Cockpit + Tasklist веб-интерфейс на localhost
+    implementation 'org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.21.0'
+
+    // ── Database ─────────────────────────────────────────────────────────
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // ── JWT ──────────────────────────────────────────────────────────────
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // ── Kafka ────────────────────────────────────────────────────────────
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // ── Redis ────────────────────────────────────────────────────────────
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // ── Lombok ───────────────────────────────────────────────────────────
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // ── MapStruct (DTO маппер) ───────────────────────────────────────────
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+    // ── Документация (Swagger / OpenAPI) ─────────────────────────────────
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // ── Тесты ────────────────────────────────────────────────────────────
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+
+    // Camunda testing — ProcessEngineRule, тестирование BPMN процессов
+    testImplementation 'org.camunda.bpm:camunda-bpm-junit5'
+    testImplementation 'org.camunda.bpm:camunda-engine:7.21.0'
+
+    // H2 — in-memory БД только для тестов
+    testRuntimeOnly 'com.h2database:h2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
