@@ -1,0 +1,69 @@
+package com.pgw.payflow.service.impl;
+
+import com.pgw.payflow.constant.enums.TransferStatus;
+import com.pgw.payflow.dto.request.TransferCreateRequest;
+import com.pgw.payflow.dto.response.TransferResponse;
+import com.pgw.payflow.entity.AccountEntity;
+import com.pgw.payflow.entity.TransferEntity;
+import com.pgw.payflow.exception.DataNotFoundException;
+import com.pgw.payflow.mapper.TransferMapper;
+import com.pgw.payflow.repository.AccountRepository;
+import com.pgw.payflow.repository.TransferRepository;
+import com.pgw.payflow.service.CamundaStartTransferProcess;
+import com.pgw.payflow.service.TransferService;
+import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class TransferServiceImpl implements TransferService {
+
+  TransferRepository transferRepository;
+  AccountRepository accountRepository;
+  TransferMapper transferMapper;
+  CamundaStartTransferProcess camundaStartTransferProcess;
+
+  @Override
+  public TransferResponse transferCreate(TransferCreateRequest transferCreateRequest) {
+    TransferEntity transfer = transferMapper.toEntity(transferCreateRequest);
+    transfer = transferRepository.save(transfer);
+
+    camundaStartTransferProcess.startTransfer(transferMapper.toProcess(transfer));
+
+    return transferMapper.toResponse(transfer);
+  }
+
+  @Override
+  @Transactional
+  public void debitAndCredit(Long transferId) {
+    TransferEntity transfer = transferRepository
+      .findById(transferId)
+      .orElseThrow(()-> new DataNotFoundException("Transfer not found"));
+
+    AccountEntity fromAccount = accountRepository
+      .findById(transfer.getFromAccount().getId())
+      .orElseThrow(() -> new DataNotFoundException("Account not found wit id: " + transfer.getFromAccount().getId()));
+
+    AccountEntity toAccount = accountRepository
+      .findById(transfer.getToAccount().getId())
+      .orElseThrow(() -> new DataNotFoundException("Account not found wit id: " + transfer.getToAccount().getId()));
+
+
+    Long amount = transfer.getAmount();
+
+    fromAccount.setBalance(fromAccount.getBalance() - amount);
+    toAccount.setBalance(toAccount.getBalance() + amount);
+
+    transfer.setTransferStatus(COMPLETED);
+    transfer.setCompletedAt(LocalDateTime.now());
+  }
+
+}

@@ -1,6 +1,6 @@
 package com.pgw.payflow.service.impl;
 
-import com.pgw.payflow.constant.AccountStatus;
+import com.pgw.payflow.constant.enums.AccountStatus;
 import com.pgw.payflow.dto.request.AccountCreateRequest;
 import com.pgw.payflow.dto.response.AccountResponse;
 import com.pgw.payflow.entity.AccountEntity;

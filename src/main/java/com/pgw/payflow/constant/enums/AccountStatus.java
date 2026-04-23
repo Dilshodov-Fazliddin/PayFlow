@@ -1,4 +1,4 @@
-package com.pgw.payflow.constant;
+package com.pgw.payflow.constant.enums;
 
 public enum AccountStatus {
     BLOCKED,

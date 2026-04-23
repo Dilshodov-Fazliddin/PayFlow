@@ -1,7 +1,7 @@
 package com.pgw.payflow.dto.response;
 
-import com.pgw.payflow.constant.Currency;
-import com.pgw.payflow.constant.TransferStatus;
+import com.pgw.payflow.constant.enums.Currency;
+import com.pgw.payflow.constant.enums.TransferStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

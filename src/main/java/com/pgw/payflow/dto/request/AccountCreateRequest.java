@@ -1,6 +1,6 @@
 package com.pgw.payflow.dto.request;
 
-import com.pgw.payflow.constant.Currency;
+import com.pgw.payflow.constant.enums.Currency;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

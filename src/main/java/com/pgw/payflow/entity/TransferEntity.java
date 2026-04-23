@@ -1,7 +1,7 @@
 package com.pgw.payflow.entity;
 
-import com.pgw.payflow.constant.Currency;
-import com.pgw.payflow.constant.TransferStatus;
+import com.pgw.payflow.constant.enums.Currency;
+import com.pgw.payflow.constant.enums.TransferStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TransferEntity extends BaseEntity{
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     UserEntity fromAccount;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     UserEntity toAccount;
     Long amount;
     Currency currency;

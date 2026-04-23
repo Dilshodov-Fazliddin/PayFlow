@@ -1,7 +1,7 @@
 package com.pgw.payflow.entity;
 
-import com.pgw.payflow.constant.AccountStatus;
-import com.pgw.payflow.constant.Currency;
+import com.pgw.payflow.constant.enums.AccountStatus;
+import com.pgw.payflow.constant.enums.Currency;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -1,6 +1,6 @@
 package com.pgw.payflow.dto.request;
 
-import com.pgw.payflow.constant.AccountStatus;
+import com.pgw.payflow.constant.enums.AccountStatus;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 import lombok.experimental.FieldDefaults;

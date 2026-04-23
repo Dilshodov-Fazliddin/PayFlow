@@ -1,6 +1,6 @@
 package com.pgw.payflow.mapper;
 
-import com.pgw.payflow.constant.AccountStatus;
+import com.pgw.payflow.constant.enums.AccountStatus;
 import com.pgw.payflow.dto.request.AccountCreateRequest;
 import com.pgw.payflow.dto.request.AccountUpdateRequest;
 import com.pgw.payflow.dto.response.AccountResponse;
