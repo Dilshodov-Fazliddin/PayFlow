@@ -5,7 +5,8 @@ import com.pgw.payflow.dto.request.TransferCreateRequest;
 import com.pgw.payflow.dto.request.TransferToProcess;
 import com.pgw.payflow.dto.response.TransferResponse;
 import com.pgw.payflow.entity.TransferEntity;
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring", imports = {TransferStatus.class})
 public interface TransferMapper {

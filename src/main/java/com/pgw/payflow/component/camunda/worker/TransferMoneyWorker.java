@@ -12,6 +12,11 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TO_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID;
+
 @Slf4j
 @Component("transferMoneyDelegate")
 @RequiredArgsConstructor
@@ -22,17 +27,18 @@ public class TransferMoneyWorker implements JavaDelegate {
 
   @Override
   public void execute(DelegateExecution execution) throws Exception {
-    Long fromAccountId = (Long) execution.getVariable("fromAccount");
-    Long toAccountId = (Long) execution.getVariable("toAccount");
-    Long amount = (Long) execution.getVariable("amount");
-    Long transactionId = (Long) execution.getVariable("transferId");
+    Long fromAccountId = (Long) execution.getVariable(FROM_ACCOUNT);
+    Long toAccountId = (Long) execution.getVariable(TO_ACCOUNT);
+    Long amount = (Long) execution.getVariable(AMOUNT);
+    Long transactionId = (Long) execution.getVariable(TRANSFER_ID);
+    String id = execution.getProcessInstance().getId();
 
     log.info("Executing transfer {}: {} -> {}, amount={}",
       transactionId, fromAccountId, toAccountId, amount);
 
 
     try {
-      transferService.debitAndCredit(transactionId);
+      transferService.debitAndCredit(transactionId,id);
     }catch (Exception e){
       log.error("Transfer execution failed for transferId={}", transactionId, e);
       throw new BpmnError("TRANSFER_FAILED", "Execution failed: " + e.getMessage());

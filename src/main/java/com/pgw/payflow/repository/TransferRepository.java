@@ -33,5 +33,5 @@ public interface TransferRepository extends JpaRepository<TransferEntity,Long> {
              AND t.createdAt >= :since
            """)
   long countByAccountSince(@Param("fromAccountId") Long fromAccountId,
-                           @Param("since") Instant since);
+                           @Param("since") LocalDateTime since);
 }

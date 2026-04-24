@@ -5,10 +5,12 @@ import com.pgw.payflow.dto.request.TransferCreateRequest;
 import com.pgw.payflow.dto.response.TransferResponse;
 import com.pgw.payflow.entity.AccountEntity;
 import com.pgw.payflow.entity.TransferEntity;
+import com.pgw.payflow.entity.UserEntity;
 import com.pgw.payflow.exception.DataNotFoundException;
 import com.pgw.payflow.mapper.TransferMapper;
 import com.pgw.payflow.repository.AccountRepository;
 import com.pgw.payflow.repository.TransferRepository;
+import com.pgw.payflow.repository.UserRepository;
 import com.pgw.payflow.service.CamundaStartTransferProcess;
 import com.pgw.payflow.service.TransferService;
 import jakarta.transaction.Transactional;
@@ -28,6 +30,7 @@ public class TransferServiceImpl implements TransferService {
 
   TransferRepository transferRepository;
   AccountRepository accountRepository;
+  UserRepository userRepository;
   TransferMapper transferMapper;
   CamundaStartTransferProcess camundaStartTransferProcess;
 
@@ -36,14 +39,20 @@ public class TransferServiceImpl implements TransferService {
     TransferEntity transfer = transferMapper.toEntity(transferCreateRequest);
     transfer = transferRepository.save(transfer);
 
-    camundaStartTransferProcess.startTransfer(transferMapper.toProcess(transfer));
+    UserEntity fromUser = userRepository.findById(transferCreateRequest.getFromUserId()).orElseThrow(() -> new DataNotFoundException("From User not found"));
+    UserEntity toUser = userRepository.findById(transferCreateRequest.getToUserId()).orElseThrow(() -> new DataNotFoundException("To User not found"));
 
+    transfer.setFromAccount(fromUser);
+    transfer.setToAccount(toUser);
+
+    transferRepository.save(transfer);
+    camundaStartTransferProcess.startTransfer(transferMapper.toProcess(transfer));
     return transferMapper.toResponse(transfer);
   }
 
   @Override
   @Transactional
-  public void debitAndCredit(Long transferId) {
+  public void debitAndCredit(Long transferId,String processInstanceId) {
     TransferEntity transfer = transferRepository
       .findById(transferId)
       .orElseThrow(()-> new DataNotFoundException("Transfer not found"));
@@ -61,7 +70,7 @@ public class TransferServiceImpl implements TransferService {
 
     fromAccount.setBalance(fromAccount.getBalance() - amount);
     toAccount.setBalance(toAccount.getBalance() + amount);
-
+    transfer.setProcessInstanceId(processInstanceId);
     transfer.setTransferStatus(COMPLETED);
     transfer.setCompletedAt(LocalDateTime.now());
   }

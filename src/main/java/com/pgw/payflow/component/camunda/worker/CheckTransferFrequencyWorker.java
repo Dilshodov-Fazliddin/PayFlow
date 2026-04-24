@@ -10,8 +10,10 @@ import org.camunda.bpm.engine.delegate.JavaDelegate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+
+import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
 
 @Slf4j
 @Component("checkTransferFrequencyDelegate")
@@ -27,10 +29,13 @@ public class CheckTransferFrequencyWorker implements JavaDelegate {
 
   @Override
   public void execute(DelegateExecution execution) {
-    Long fromAccountId = (Long) execution.getVariable("fromAccountId");
-    BigDecimal amount = (BigDecimal) execution.getVariable("amount");
 
-    Instant since = Instant.now().minus(1, ChronoUnit.HOURS);
+    Long fromAccountId = (Long) execution.getVariable(FROM_ACCOUNT);
+    Long amountRaw = (Long) execution.getVariable(AMOUNT);
+    log.info("fromAccountId: {}, amountRaw: {}", fromAccountId, amountRaw);
+    BigDecimal amount = BigDecimal.valueOf(amountRaw);
+
+    LocalDateTime since = LocalDateTime.now().minusHours(1);
     long recentCount = transferRepository.countByAccountSince(fromAccountId, since);
 
     boolean frequencySuspicious = recentCount > FREQUENCY_THRESHOLD;
@@ -59,11 +64,11 @@ public class CheckTransferFrequencyWorker implements JavaDelegate {
     }
 
     log.info("Fraud decision: {} ({})", decision, reason);
-
+    boolean fraudCheckPassed = "APPROVED".equals(decision);
     execution.setVariable("fraudDecision", decision);
     execution.setVariable("fraudReason", reason);
     execution.setVariable("recentTransferCount", recentCount);
     execution.setVariable("allChecksPassed", true);
-    
+    execution.setVariable("fraudCheckPassed", fraudCheckPassed);
   }
 }

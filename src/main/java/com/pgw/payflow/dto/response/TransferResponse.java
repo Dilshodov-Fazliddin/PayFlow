@@ -22,7 +22,6 @@ public class TransferResponse {
     Currency currency;
     TransferStatus transferStatus;
     String processInstanceId;
-    LocalDateTime completedAt;
     String failureReason;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

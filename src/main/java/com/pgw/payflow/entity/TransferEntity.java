@@ -22,6 +22,7 @@ public class TransferEntity extends BaseEntity{
     @ManyToOne(fetch = FetchType.EAGER)
     UserEntity toAccount;
     Long amount;
+    @Enumerated(EnumType.STRING)
     Currency currency;
     @Enumerated(EnumType.STRING)
     TransferStatus transferStatus;

@@ -11,6 +11,11 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TO_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -20,17 +25,17 @@ public class CamundaStartTransferProcessImpl implements CamundaStartTransferProc
 
   @Override
   public void startTransfer(TransferToProcess request) {
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("fromAccount", request.getFromAccount());
-    variables.put("toAccount", request.getToAccount());
-    variables.put("amount", request.getAmount());
-    variables.put("transferId", request.getTransferId());
+    final Map<String, Object> variables = new HashMap<>();
+    variables.put(FROM_ACCOUNT, request.getFromAccount());
+    variables.put(TO_ACCOUNT, request.getToAccount());
+    variables.put(AMOUNT, request.getAmount());
+    variables.put(TRANSFER_ID, request.getTransferId());
     variables.put("validationPassed", request.getValidatePassed());
+
 
 
     runtimeService.startProcessInstanceByKey(
       "paymentProcess",
-      request.getTransferId().toString(),
       variables);
   }
 }

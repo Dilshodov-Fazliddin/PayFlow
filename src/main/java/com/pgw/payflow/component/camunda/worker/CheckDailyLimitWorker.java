@@ -1,5 +1,6 @@
 package com.pgw.payflow.component.camunda.worker;
 
+import com.pgw.payflow.component.camunda.valueObject.Constant;
 import com.pgw.payflow.repository.TransferRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.DAILY_LIMIT_MAX;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+
 @Slf4j
 @Component("checkDailyLimitDelegate")
 @RequiredArgsConstructor
@@ -24,9 +29,8 @@ public class CheckDailyLimitWorker implements JavaDelegate {
   @Override
   public void execute(DelegateExecution execution) {
 
-    Long fromAccount = (Long) execution.getVariable("fromAccount");
-    Long amount = (Long) execution.getVariable("amount");
-    Integer dailyLimit = (Integer) execution.getVariable("dailyLimitMax");
+    Long fromAccount = (Long) execution.getVariable(FROM_ACCOUNT);
+    Long amount = (Long) execution.getVariable(AMOUNT);
 
     LocalDate today = LocalDate.now();
     LocalDateTime startOfDay = today.atStartOfDay();
@@ -40,7 +44,7 @@ public class CheckDailyLimitWorker implements JavaDelegate {
     }
 
     BigDecimal currentAmount = BigDecimal.valueOf(amount);
-    BigDecimal limit = BigDecimal.valueOf(dailyLimit);
+    BigDecimal limit = BigDecimal.valueOf(DAILY_LIMIT_MAX);
 
     BigDecimal projected = spentToday.add(currentAmount);
 

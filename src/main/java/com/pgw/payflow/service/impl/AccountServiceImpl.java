@@ -5,6 +5,7 @@ import com.pgw.payflow.dto.request.AccountCreateRequest;
 import com.pgw.payflow.dto.response.AccountResponse;
 import com.pgw.payflow.entity.AccountEntity;
 import com.pgw.payflow.entity.UserEntity;
+import com.pgw.payflow.exception.TransferCanceledException;
 import com.pgw.payflow.mapper.AccountMapper;
 import com.pgw.payflow.repository.AccountRepository;
 import com.pgw.payflow.service.AccountService;
@@ -13,6 +14,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.AccountNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -32,4 +35,17 @@ public class AccountServiceImpl implements AccountService {
         accountEntity.setUser(user);
         return accountMapper.toResponse(accountRepository.save(accountEntity));
     }
+
+    @Override
+    public boolean balanceChecker(Long fromAccountId, Long amount)  {
+        AccountEntity accountEntity = accountRepository.findById(fromAccountId).orElseThrow();
+
+        if (accountEntity.getBalance() == null || amount == null) {
+            return false;
+        }
+
+      return accountEntity.getAccountStatus().equals(AccountStatus.ACTIVE) && accountEntity.getBalance() >= amount;
+    }
+
+
 }

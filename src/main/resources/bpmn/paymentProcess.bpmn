@@ -19,6 +19,7 @@
       <bpmn:incoming>Flow_14ol9qc</bpmn:incoming>
       <bpmn:outgoing>Flow_0gp399p</bpmn:outgoing>
     </bpmn:serviceTask>
+
     <bpmn:sequenceFlow id="Flow_14ol9qc" sourceRef="Activity_05y15qf" targetRef="Activity_0ek0trm" />
     <bpmn:exclusiveGateway id="Gateway_0b7kp2u" name="Все проверки прошли ?" default="Flow_1nafga2">
       <bpmn:incoming>Flow_0a212i2</bpmn:incoming>
