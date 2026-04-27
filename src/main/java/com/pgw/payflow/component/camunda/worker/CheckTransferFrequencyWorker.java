@@ -3,6 +3,7 @@ package com.pgw.payflow.component.camunda.worker;
 import com.pgw.payflow.constant.enums.TransferStatus;
 import com.pgw.payflow.exception.TransferCanceledException;
 import com.pgw.payflow.repository.TransferRepository;
+import com.pgw.payflow.service.TransferService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 
 import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID;
 import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
 
 @Slf4j
@@ -25,6 +27,7 @@ import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
 public class CheckTransferFrequencyWorker implements JavaDelegate {
 
   TransferRepository transferRepository;
+  TransferService transferService;
 
   private static final int FREQUENCY_THRESHOLD = 5;
   private static final BigDecimal REVIEW_THRESHOLD = new BigDecimal("100000");
@@ -35,6 +38,7 @@ public class CheckTransferFrequencyWorker implements JavaDelegate {
 
     Long fromAccountId = (Long) execution.getVariable(FROM_ACCOUNT);
     Long amountRaw = (Long) execution.getVariable(AMOUNT);
+    Long transferId = (Long) execution.getVariable(TRANSFER_ID);
     log.info("fromAccountId: {}, amountRaw: {}", fromAccountId, amountRaw);
     BigDecimal amount = BigDecimal.valueOf(amountRaw);
 
@@ -73,7 +77,8 @@ public class CheckTransferFrequencyWorker implements JavaDelegate {
       execution.setVariable("recentTransferCount", recentCount);
       execution.setVariable("allChecksPassed", true);
       execution.setVariable("fraudCheckPassed", fraudCheckPassed);
-    }catch (Exception e){
+    } catch (Exception e){
+      transferService.markAsFailed(transferId);
       execution.setVariable("allChecksPassed", false);
       execution.setVariable("transferStatus", "FAILED");
       execution.setVariable("failReason", "Something is wrong");

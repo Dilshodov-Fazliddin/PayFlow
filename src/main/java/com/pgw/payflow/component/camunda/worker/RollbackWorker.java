@@ -22,6 +22,5 @@ public class RollbackWorker implements JavaDelegate {
     execution.setVariable("transferStatus", "FAILED");
     execution.setVariable("failReason", "FRAUD_OR_LIMIT_FAILED");
 
-    // TODO: тут будет реальная логика отката, когда понадобится
   }
 }

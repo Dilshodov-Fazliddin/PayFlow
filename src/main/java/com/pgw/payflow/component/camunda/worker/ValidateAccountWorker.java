@@ -4,6 +4,7 @@ import com.pgw.payflow.component.camunda.valueObject.Constant;
 import com.pgw.payflow.constant.enums.AccountStatus;
 import com.pgw.payflow.exception.DataNotFoundException;
 import com.pgw.payflow.repository.AccountRepository;
+import com.pgw.payflow.service.TransferService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,7 @@ import static com.pgw.payflow.component.camunda.valueObject.Constant.*;
 public class ValidateAccountWorker implements JavaDelegate {
 
   AccountRepository accountRepository;
+  TransferService transferService;
 
   @Override
   public void execute(DelegateExecution execution) throws Exception {
@@ -43,6 +45,7 @@ public class ValidateAccountWorker implements JavaDelegate {
       execution.setVariable("validationPassed", true);
       execution.setVariable("accountValid", true);
     }catch (Exception e){
+      transferService.markAsFailed(transferId);
       execution.setVariable("transferStatus", "FAILED");
       execution.setVariable("failReason", "VALIDATION_FAILED");
     }

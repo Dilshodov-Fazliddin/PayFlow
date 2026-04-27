@@ -42,6 +42,7 @@ public class TransferMoneyWorker implements JavaDelegate {
       transferService.debitAndCredit(transactionId,id);
       execution.setVariable("transferStatus", COMPLETED.toString());
     }catch (Exception e){
+      transferService.markAsFailed(transactionId);
       execution.setVariable("transferStatus", "FAILED");
       execution.setVariable("failReason", "Something is wrong");
       log.error("Transfer execution failed for transferId={}", transactionId, e);

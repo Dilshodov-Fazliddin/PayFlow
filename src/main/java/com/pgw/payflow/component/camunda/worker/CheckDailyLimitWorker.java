@@ -2,6 +2,7 @@ package com.pgw.payflow.component.camunda.worker;
 
 import com.pgw.payflow.component.camunda.valueObject.Constant;
 import com.pgw.payflow.repository.TransferRepository;
+import com.pgw.payflow.service.TransferService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.DAILY_LIMIT_MAX;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID;
 
 @Slf4j
 @Component("checkDailyLimitDelegate")
@@ -25,13 +27,14 @@ import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUN
 public class CheckDailyLimitWorker implements JavaDelegate {
 
   TransferRepository transferRepository;
+  TransferService transferService;
 
   @Override
   public void execute(DelegateExecution execution) {
 
     Long fromAccount = (Long) execution.getVariable(FROM_ACCOUNT);
     Long amount = (Long) execution.getVariable(AMOUNT);
-
+    Long transferId = (Long) execution.getVariable(TRANSFER_ID);
     LocalDate today = LocalDate.now();
     LocalDateTime startOfDay = today.atStartOfDay();
     LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
@@ -59,6 +62,7 @@ public class CheckDailyLimitWorker implements JavaDelegate {
       execution.setVariable("allChecksPassed", true);
       execution.setVariable("limitOk", true);
     }catch (Exception e){
+      transferService.markAsFailed(transferId);
       execution.setVariable("transferStatus", "FAILED");
       execution.setVariable("failReason", "Daily limit exceeded");
     }

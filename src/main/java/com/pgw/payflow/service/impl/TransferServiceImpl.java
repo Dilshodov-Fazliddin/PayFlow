@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
+import static com.pgw.payflow.constant.enums.TransferStatus.FAILED;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +52,17 @@ public class TransferServiceImpl implements TransferService {
 
     TransferEntity transferToResponse = transferRepository.findById(transfer.getId()).orElseThrow(() -> new DataNotFoundException("Transfer not found"));
     return transferMapper.toResponse(transferToResponse);
+  }
+
+  @Override
+  public void markAsFailed(Long transferId) {
+    TransferEntity transfer = transferRepository.findById(transferId)
+      .orElseThrow(() -> new DataNotFoundException("Transfer not found"));
+
+
+    transfer.setCompletedAt(LocalDateTime.now());
+    transfer.setTransferStatus(FAILED);
+    transferRepository.save(transfer);
   }
 
   @Override
