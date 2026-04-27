@@ -1,5 +1,7 @@
 package com.pgw.payflow.component.camunda.worker;
 
+import com.pgw.payflow.constant.enums.TransferStatus;
+import com.pgw.payflow.exception.TransferCanceledException;
 import com.pgw.payflow.repository.TransferRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 
 import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
+import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
 
 @Slf4j
 @Component("checkTransferFrequencyDelegate")
@@ -45,30 +48,36 @@ public class CheckTransferFrequencyWorker implements JavaDelegate {
 
     String decision;
     String reason;
+    try {
+      if (amount.compareTo(REJECT_THRESHOLD) > 0) {
+        decision = "REJECTED";
+        reason = "Amount exceeds hard reject threshold (" + REJECT_THRESHOLD + ")";
+      } else if (frequencySuspicious && amount.compareTo(REVIEW_THRESHOLD) > 0) {
+        decision = "REJECTED";
+        reason = "Suspicious frequency combined with large amount";
+      } else if (amount.compareTo(REVIEW_THRESHOLD) > 0) {
+        decision = "REVIEW_REQUIRED";
+        reason = "Amount exceeds review threshold (" + REVIEW_THRESHOLD + ")";
+      } else if (frequencySuspicious) {
+        decision = "REVIEW_REQUIRED";
+        reason = "Suspicious transfer frequency: " + recentCount + " in last hour";
+      } else {
+        decision = "APPROVED";
+        reason = "No fraud signals detected";
+      }
 
-    if (amount.compareTo(REJECT_THRESHOLD) > 0) {
-      decision = "REJECTED";
-      reason = "Amount exceeds hard reject threshold (" + REJECT_THRESHOLD + ")";
-    } else if (frequencySuspicious && amount.compareTo(REVIEW_THRESHOLD) > 0) {
-      decision = "REJECTED";
-      reason = "Suspicious frequency combined with large amount";
-    } else if (amount.compareTo(REVIEW_THRESHOLD) > 0) {
-      decision = "REVIEW_REQUIRED";
-      reason = "Amount exceeds review threshold (" + REVIEW_THRESHOLD + ")";
-    } else if (frequencySuspicious) {
-      decision = "REVIEW_REQUIRED";
-      reason = "Suspicious transfer frequency: " + recentCount + " in last hour";
-    } else {
-      decision = "APPROVED";
-      reason = "No fraud signals detected";
+      log.info("Fraud decision: {} ({})", decision, reason);
+      boolean fraudCheckPassed = "APPROVED".equals(decision);
+      execution.setVariable("fraudDecision", decision);
+      execution.setVariable("fraudReason", reason);
+      execution.setVariable("recentTransferCount", recentCount);
+      execution.setVariable("allChecksPassed", true);
+      execution.setVariable("fraudCheckPassed", fraudCheckPassed);
+    }catch (Exception e){
+      execution.setVariable("allChecksPassed", false);
+      execution.setVariable("transferStatus", "FAILED");
+      execution.setVariable("failReason", "Something is wrong");
+      throw new TransferCanceledException("Transfer canceled");
     }
-
-    log.info("Fraud decision: {} ({})", decision, reason);
-    boolean fraudCheckPassed = "APPROVED".equals(decision);
-    execution.setVariable("fraudDecision", decision);
-    execution.setVariable("fraudReason", reason);
-    execution.setVariable("recentTransferCount", recentCount);
-    execution.setVariable("allChecksPassed", true);
-    execution.setVariable("fraudCheckPassed", fraudCheckPassed);
   }
 }

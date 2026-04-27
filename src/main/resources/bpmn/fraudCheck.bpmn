@@ -12,7 +12,7 @@
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>Flow_0oaogv4</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="Activity_0wx3lbr" name="Проверка на частоту переводов" camunda:delegateExpression="${fraudFrequencyCheckDelegate}">
+    <bpmn:serviceTask id="Activity_0wx3lbr" name="Проверка на частоту переводов" camunda:delegateExpression="${checkTransferFrequencyDelegate}">
       <bpmn:incoming>Flow_0oaogv4</bpmn:incoming>
       <bpmn:outgoing>Flow_1mr9frf</bpmn:outgoing>
     </bpmn:serviceTask>

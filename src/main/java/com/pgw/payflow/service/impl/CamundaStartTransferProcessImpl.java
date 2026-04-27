@@ -5,10 +5,14 @@ import com.pgw.payflow.service.CamundaStartTransferProcess;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.history.HistoricVariableInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
@@ -22,6 +26,7 @@ import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID
 public class CamundaStartTransferProcessImpl implements CamundaStartTransferProcess {
 
   RuntimeService runtimeService;
+  HistoryService historyService;
 
   @Override
   public void startTransfer(TransferToProcess request) {
@@ -32,10 +37,33 @@ public class CamundaStartTransferProcessImpl implements CamundaStartTransferProc
     variables.put(TRANSFER_ID, request.getTransferId());
     variables.put("validationPassed", request.getValidatePassed());
 
-
-
-    runtimeService.startProcessInstanceByKey(
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey(
       "paymentProcess",
       variables);
+
+    String processInstanceId = instance.getProcessInstanceId();
+
+    List<HistoricVariableInstance> historicVars = historyService
+      .createHistoricVariableInstanceQuery()
+      .processInstanceId(processInstanceId)
+      .list();
+
+    String status = historicVars.stream()
+      .filter(v -> "transferStatus".equals(v.getName()))
+      .map(v -> (String) v.getValue())
+      .findFirst()
+      .orElse("UNKNOWN");
+
+    if (!"COMPLETED".equals(status)) {
+      historicVars.forEach(v ->
+        System.out.println("VAR: " + v.getName() + " = " + v.getValue())
+      );
+      String reason = historicVars.stream()
+        .filter(v -> "failReason".equals(v.getName()))
+        .map(v -> (String) v.getValue())
+        .findFirst()
+        .orElse("UNKNOWN_REASON");
+      throw new RuntimeException(reason);
+    }
   }
 }

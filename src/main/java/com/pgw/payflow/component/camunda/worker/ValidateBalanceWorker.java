@@ -1,9 +1,7 @@
 package com.pgw.payflow.component.camunda.worker;
 
 import com.pgw.payflow.entity.AccountEntity;
-import com.pgw.payflow.exception.TransferCanceledException;
 import com.pgw.payflow.repository.AccountRepository;
-import com.pgw.payflow.repository.TransferRepository;
 import com.pgw.payflow.service.AccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +37,10 @@ public class ValidateBalanceWorker implements JavaDelegate {
     boolean checker = accountService.balanceChecker(fromAccountId, amount);
 
     if (!checker){
-      throw new BpmnError("TRANSFER FAILED", "FAIL");
-  }
+      execution.setVariable("transferStatus", "FAILED");
+      execution.setVariable("failReason", "INSUFFICIENT_BALANCE");
+      throw new BpmnError("TRANSFER_CANCELED", "Insufficient balance");
+    }
     execution.setVariable("balanceValid", true);
   }
 }

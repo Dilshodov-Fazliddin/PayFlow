@@ -25,4 +25,5 @@ public class TransferResponse {
     String failureReason;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+    LocalDateTime completedAt;
 }

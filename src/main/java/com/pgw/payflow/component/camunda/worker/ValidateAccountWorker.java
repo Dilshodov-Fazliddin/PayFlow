@@ -31,19 +31,21 @@ public class ValidateAccountWorker implements JavaDelegate {
     Long toAccountId = (Long) execution.getVariable(TO_ACCOUNT);
 
     log.info("Validating accounts for transferId={}, from={}, to={}, variable = {}",
-      transferId, fromAccountId, toAccountId,execution.getVariables());
+      transferId, fromAccountId, toAccountId, execution.getVariables());
 
 
-     accountRepository.findByIdAndAccountStatus(fromAccountId, AccountStatus.ACTIVE).orElseThrow(() -> new DataNotFoundException("Account can not transfer with id: " + fromAccountId));
+    try {
+      accountRepository.findByIdAndAccountStatus(fromAccountId, AccountStatus.ACTIVE).orElseThrow(() -> new DataNotFoundException("Account can not transfer with id: " + fromAccountId));
 
-     accountRepository.findByIdAndAccountStatus(toAccountId,AccountStatus.ACTIVE).orElseThrow(() -> new DataNotFoundException("Account can not transfer with id: " + toAccountId));
+      accountRepository.findByIdAndAccountStatus(toAccountId, AccountStatus.ACTIVE).orElseThrow(() -> new DataNotFoundException("Account can not transfer with id: " + toAccountId));
 
 
-    execution.setVariable("validationPassed", true);
-    execution.setVariable("accountValid", true);
+      execution.setVariable("validationPassed", true);
+      execution.setVariable("accountValid", true);
+    }catch (Exception e){
+      execution.setVariable("transferStatus", "FAILED");
+      execution.setVariable("failReason", "VALIDATION_FAILED");
+    }
   }
 
-  private BpmnError fail(String reason) {
-    return new BpmnError("TRANSFER_FAILED", reason);
-  }
 }

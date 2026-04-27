@@ -35,6 +35,7 @@ public class TransferServiceImpl implements TransferService {
   CamundaStartTransferProcess camundaStartTransferProcess;
 
   @Override
+  @Transactional
   public TransferResponse transferCreate(TransferCreateRequest transferCreateRequest) {
     TransferEntity transfer = transferMapper.toEntity(transferCreateRequest);
     transfer = transferRepository.save(transfer);
@@ -47,11 +48,12 @@ public class TransferServiceImpl implements TransferService {
 
     transferRepository.save(transfer);
     camundaStartTransferProcess.startTransfer(transferMapper.toProcess(transfer));
-    return transferMapper.toResponse(transfer);
+
+    TransferEntity transferToResponse = transferRepository.findById(transfer.getId()).orElseThrow(() -> new DataNotFoundException("Transfer not found"));
+    return transferMapper.toResponse(transferToResponse);
   }
 
   @Override
-  @Transactional
   public void debitAndCredit(Long transferId,String processInstanceId) {
     TransferEntity transfer = transferRepository
       .findById(transferId)

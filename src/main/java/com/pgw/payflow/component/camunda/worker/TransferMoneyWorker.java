@@ -16,6 +16,7 @@ import static com.pgw.payflow.component.camunda.valueObject.Constant.AMOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.FROM_ACCOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.TO_ACCOUNT;
 import static com.pgw.payflow.component.camunda.valueObject.Constant.TRANSFER_ID;
+import static com.pgw.payflow.constant.enums.TransferStatus.COMPLETED;
 
 @Slf4j
 @Component("transferMoneyDelegate")
@@ -39,7 +40,10 @@ public class TransferMoneyWorker implements JavaDelegate {
 
     try {
       transferService.debitAndCredit(transactionId,id);
+      execution.setVariable("transferStatus", COMPLETED.toString());
     }catch (Exception e){
+      execution.setVariable("transferStatus", "FAILED");
+      execution.setVariable("failReason", "Something is wrong");
       log.error("Transfer execution failed for transferId={}", transactionId, e);
       throw new BpmnError("TRANSFER_FAILED", "Execution failed: " + e.getMessage());
     }

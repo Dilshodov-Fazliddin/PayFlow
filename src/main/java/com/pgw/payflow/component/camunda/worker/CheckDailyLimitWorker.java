@@ -36,26 +36,31 @@ public class CheckDailyLimitWorker implements JavaDelegate {
     LocalDateTime startOfDay = today.atStartOfDay();
     LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
 
-    BigDecimal spentToday = transferRepository
-      .sumSuccessfulTransfersByAccountAndDate(fromAccount, startOfDay, endOfDay);
+    try {
+      BigDecimal spentToday = transferRepository
+        .sumSuccessfulTransfersByAccountAndDate(fromAccount, startOfDay, endOfDay);
 
-    if (spentToday == null) {
-      spentToday = BigDecimal.ZERO;
+      if (spentToday == null) {
+        spentToday = BigDecimal.ZERO;
+      }
+
+      BigDecimal currentAmount = BigDecimal.valueOf(amount);
+      BigDecimal limit = BigDecimal.valueOf(DAILY_LIMIT_MAX);
+
+      BigDecimal projected = spentToday.add(currentAmount);
+
+      boolean limitExceeded = projected.compareTo(limit) > 0;
+
+      log.info("Daily limit check: account={}, spentToday={}, currentAmount={}, projected={}, limit={}, exceeded={}",
+        fromAccount, spentToday, currentAmount, projected, limit, limitExceeded
+      );
+
+      execution.setVariable("limitExceeded", limitExceeded);
+      execution.setVariable("allChecksPassed", true);
+      execution.setVariable("limitOk", true);
+    }catch (Exception e){
+      execution.setVariable("transferStatus", "FAILED");
+      execution.setVariable("failReason", "Daily limit exceeded");
     }
-
-    BigDecimal currentAmount = BigDecimal.valueOf(amount);
-    BigDecimal limit = BigDecimal.valueOf(DAILY_LIMIT_MAX);
-
-    BigDecimal projected = spentToday.add(currentAmount);
-
-    boolean limitExceeded = projected.compareTo(limit) > 0;
-
-    log.info("Daily limit check: account={}, spentToday={}, currentAmount={}, projected={}, limit={}, exceeded={}",
-      fromAccount, spentToday, currentAmount, projected, limit, limitExceeded
-    );
-
-    execution.setVariable("limitExceeded", limitExceeded);
-    execution.setVariable("allChecksPassed", true);
-    execution.setVariable("limitOk", true);
   }
 }
